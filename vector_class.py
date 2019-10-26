@@ -15,48 +15,52 @@ class Vector:
     
     def __init__(self, head, axis = 0, origin = []):
         """Initialize the vector object using a list. An axis is provided
-           to delineate whether this is a row or column vector. The default
-           is a row vector."""
+           to delineate whether this is a row or column vector. Currently,
+           the axis is just a placeholder for the potential need. The default
+           is a row vector. An origin can also be provided as a list. If
+           specified, it must be the same dimension as the vector. If not
+           specified, the origin will be assumed to be [0, 0, ...].
+           
+           The init method will also initialize to other variables:
+           _dtype and _dim. The type of value specified in the head list
+           will be stored in _dtype. The dimension of the head list will
+           be stored in _dim."""
         
         #Initialize _coordinates and test whether the constructor is called
         #with a list of numeric values.
-        if type(head) == list:
-            self._coordinates = head
-        else:
-            try:
-                self._coordinates = list(head)
-            except TypeError:
-                raise TypeError("Expected list or similar castable object as vector. Got " + str(type(head)) + ".")
-            except:
-                raise Exception("Unknown error in class constructor.")
-        
-        #Check if entries are numbers.
+        try:
+            self._coordinates = list(head)
+        except TypeError:
+            raise TypeError("Expected list or similar castable object as vector. Got " + str(type(head)) + ".")
+        except:
+            raise Exception("Unknown error in class constructor.")
 
+        #Check if coordinate entries are numbers.
         for i in self._coordinates:
             if not bool(0 == i * 0):
                 raise Exception("Vector list elements must be numbers.")
             
-        #Initialize axis with either 0 or 1.
+        #Initialize axis with either 0 or 1. 
         if type(axis) == int and (axis == 0 or axis == 1):
             self._axis = axis
         elif type(axis) == str:
             if axis == "row": self._axis = 0
-            elif axis == "column": self._axis = 1
+            elif axis == "column" or axis == "col": self._axis = 1
             else: raise Exception('Expected axis to be 0, 1, "row," or "column".')
-        
+        else:
+            raise Exception('Expected axis to be 0, 1, "row," or "column".')
         
         #Initialize the origin if given. If the origin is all zeros, then
         #the list will remain empty.
-        if type(origin) == list:
-            self._origin = origin
-        else:
-            try:
-                self._origin = list(origin)
-            except TypeError:
-                print("Expected list or similar castable object as origin. Got " + str(type(origin)) + ".")
-            except:
-                raise Exception("Unknown error in class constructor.")
+        try:
+            self._origin = list(origin)
+        except TypeError:
+            print("Expected list or similar castable object as origin. Got " + str(type(origin)) + ".")
+        except:
+            raise Exception("Unknown error in class constructor.")
 
+        #If the origin is specified, check that the entries are numbers and
+        #that it is of the same dimension as the vector itself.
         if self._origin != []:                
             for i in self._origin:
                 if not bool(0 == i * 0):
@@ -89,38 +93,53 @@ class Vector:
         #Initialization and type check complete.
     
     def __repr__(self):
+        """Vector output will be different from that of a list. First, angle brackets
+           will be used instead of square brackets. If an origin is specified, then
+           the origin will be printed as well in the form of origin->vector."""
         if self._origin == []:
             return '\u27e8' + str(self._coordinates)[1:-1] + '\u27e9'
         else:
             return '\u27e8' + str(self._origin)[1:-1] + '\u27e9 \u27f6 \u27e8' + str(self._coordinates)[1:-1] + '\u27e9'
 
     def __str__(self):
+        """Use __repr__."""
         return self.__repr__()
     
     def __add__(self, other):
+        """Vector addition."""
         self._checkTypeCompatability(other)
         return Vector([self._coordinates[i] + other._coordinates[i] for i in range(self._dim)], origin = self._origin, axis = self._axis)
         
     def __sub__(self, other):
+        """Vector subtraction."""
         self._checkTypeCompatability(other)
         return Vector([self._coordinates[i] - other._coordinates[i] for i in range(self._dim)], origin = self._origin, axis = self._axis)
 
     def __mul__(self, other):
+        """Scalar multiplication."""
+        
+        #Ensure we are given a scalar and nothing else.
         if bool(0 == other * 0):
             return Vector([self._coordinates[i] * other for i in range(self._dim)], origin = self._origin, axis = self._axis)
         else:
             raise Exception("Multiplication of vectors with non-scalars is ambiguous. Please use either the dot() or cross() methods.")
             
     def __div__(self, other):
+        """Undefined. If division by a scalar is required, simply perform scalar
+           multiplication using the reciprocal of the scalar."""
         self._undef()
              
     def __rmul__(self, other):
+        """Scalar multiplication with operands in a different order."""
         return self.__mul__(other)
         
     def _undef(self):
+        """A catch-all method to be called if a mathematical operation is undefined."""
         raise Exception("This operation is undefined on vectors.")
 
     def _checkTypeCompatability(self, other):
+        """A type check to make sure that operations between vectors are specified
+           using the Vector class."""
         if type(other) != Vector:
             raise TypeError("Both arguments must be of the Vector class.")
         if len(self._coordinates) != len(other._coordinates):
@@ -129,13 +148,15 @@ class Vector:
             raise Exception("Specified origins must match.")
                     
     def add(self, other):
+        """A direct method for the addition of two vectors."""
         return self.__add__(other)
     
     def sub(self, other):
+        """A direct method for the subtraction of two vectors."""
         return self.__sub__(other)
     
     def smul(self, other):
-        """Scalar multiplication."""
+        """A direct method for scalar multiplication."""
         return self.__mul__(other)
     
     def shift(self, newOrigin = []):
@@ -152,6 +173,9 @@ class Vector:
             return Vector([self._coordinates[i] + newOrigin[i] for i in range(self._dim)], origin = newOrigin, axis = self._axis)
 
     def norm(self):
+        """Compute the Euclidean norm of a vector. This is the same as the length
+           of the vector if it is two- or three-dimensional. The norm is returned
+           as a float."""
         euclideanNorm = 0.0
         if self._origin == []:
             tempOrigin = [0 for i in range(self._dim)]
@@ -162,6 +186,8 @@ class Vector:
         return sqrt(euclideanNorm)
     
     def dot(self, other):
+        """Compute the dot product of two vectors. The dot product is returned as
+           a float."""        
         self._checkTypeCompatability(other)
         dotProduct = 0.0
         for i in range(self._dim):
