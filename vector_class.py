@@ -173,9 +173,8 @@ class Vector:
             return Vector([self._coordinates[i] + newOrigin[i] for i in range(self._dim)], origin = newOrigin, axis = self._axis)
 
     def norm(self):
-        """Compute the Euclidean norm of a vector. This is the same as the length
-           of the vector if it is two- or three-dimensional. The norm is returned
-           as a float."""
+        """Compute the Euclidean norm of a vector. This is the same as length
+           in a Euclidean space. The norm is returned as a float."""
         euclideanNorm = 0.0
         if self._origin == []:
             tempOrigin = [0 for i in range(self._dim)]
@@ -187,11 +186,16 @@ class Vector:
     
     def dot(self, other):
         """Compute the dot product of two vectors. The dot product is returned as
-           a float."""        
+           a float."""
         self._checkTypeCompatability(other)
         dotProduct = 0.0
         for i in range(self._dim):
             dotProduct += self._coordinates[i] * other._coordinates[i]
+        
+        #Need to add code for the dot product of vectors with complex coordinates.
+        #Need to add code to check if the tails of the vectors share the same origin.
+        #Need to add code to reject one-dimensional vectors
+        
         return dotProduct
 
             
