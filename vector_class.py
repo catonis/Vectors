@@ -6,18 +6,18 @@ Created on Tue Oct 22 04:46:51 2019
 
 A vector class for mathematical usage. This vector is defined to be useful
 in seeing the operations of vector calculus and linear algebra. Other Python
-libraries have much more efficient vector and matrix operations.
+libraries such as NumPy have much more efficient vector and matrix operations.
 
 TO DO:
-    . Add verbosity for operations
-    . Add slicing
+    . Add an attribute for the zero vector associated with the vector.
+    . Properly format docstring
     . Add functionality for a vector with complex components and for
       vectors in the complex plane.    
     . Add cross product for 7-dim vectors (is this even necessary??)
     
 """
 
-from math import sqrt
+from math import sqrt, acos, asin, pi
 
 class Vector:
     
@@ -138,6 +138,12 @@ class Vector:
         
     def __getitem__(self, index):
         return self._coordinates[index]
+    
+    def __iter__(self):
+        return iter(self._coordinates)
+    
+    def __len__(self):
+        return self._dim
 
     def __mul__(self, other):
         """Scalar multiplication."""
@@ -146,7 +152,7 @@ class Vector:
         if bool(0 == other * 0):
             return Vector([self._coordinates[i] * other for i in range(self._dim)], origin = self._origin, axis = self._axis)
         else:
-            raise Exception("Multiplication of vectors with non-scalars is ambiguous. Please use either the dot() or cross() methods.")           
+            raise Exception("Multiplication of vectors with non-scalars is ambiguous. Please use either the dot() or cross() methods.")
 
     def __rmul__(self, other):
         """Scalar multiplication with operands in a different order."""
@@ -187,7 +193,6 @@ class Vector:
     def tail(self):
         """Return as a list."""
         return self._origin
-    
         
     def _checkTypeCompatability(self, other):
         """A type check to make sure that operations between vectors are specified
@@ -202,10 +207,26 @@ class Vector:
     def _undef(self):
         """A catch-all method to be called if a mathematical operation is undefined."""
         raise Exception("This operation is undefined on vectors.")
-            
+        
     def add(self, other):
         """A direct method for the addition of two vectors."""
         return self.__add__(other)
+    
+    def angle(self, other, units = "rad"):
+        self._checkTypeCompatability(other)
+        if units == "deg" or units == "degree" or units == "degrees":
+            rads = False
+        elif units == "rad" or units == "rads" or units == "radian" or units == "radians":
+            rads = True
+        else:
+            raise Exception('Unknown unit specification. Use "rad" for radians or "deg" for degrees.')
+        numerator = self.dot(other)
+        denominator = self.norm() * other.norm()
+        cosTheta = numerator / denominator
+        if rads:
+            return acos(cosTheta)
+        else:
+            return acos(cosTheta) * (180 / pi)            
     
     def cross(self, other):
         """Compute the cross product of two, three-dimensional vectors."""
@@ -266,3 +287,30 @@ class Vector:
         """A direct method for the subtraction of two vectors."""
         return self.__sub__(other)
     
+    def triple(self, other1, other2):
+        """Compute a . (b x c)."""
+        return float(self.dot(other1.cross(other2)))
+    
+    def unit(self):
+        """If the dimension of the vector is between one and three, provide a
+           string representation of the vector as a combination of unit vectors."""
+        if self._dim > 3:
+            raise Exception("Unit vector representation only available for vectors of dimension one through three.")
+        unitString = ""
+        if self._dim >= 1:
+            if self[0] >= 0:
+                unitString = str(self[0]) + "\u00ee"
+            else:
+                unitString = "-" + str(abs(self[0])) + "\u00ee"
+        if self._dim >= 2:
+            if self[1] >= 0:
+                unitString += " + " + str(self[1]) + "\u0135"
+            else:
+                unitString += " - " + str(abs(self[1])) + "\u0135"
+        if self._dim == 3:
+            if self[2] >= 0:
+                unitString += " + " + str(self[2]) + "k\u0302"
+            else:
+                unitString += " - " + str(abs(self[2])) + "k\u0302"
+        return unitString
+        
