@@ -10,9 +10,10 @@ libraries have much more efficient vector and matrix operations.
 
 TO DO:
     . Add verbosity for operations
-    . Add functionality for a vector with complex components
-    . Add cross product for 7-dim vectors
     . Add slicing
+    . Add functionality for a vector with complex components and for
+      vectors in the complex plane.    
+    . Add cross product for 7-dim vectors (is this even necessary??)
     
 """
 
@@ -187,10 +188,6 @@ class Vector:
         """Return as a list."""
         return self._coordinates
         
-    def _undef(self):
-        """A catch-all method to be called if a mathematical operation is undefined."""
-        raise Exception("This operation is undefined on vectors.")
-
     def _checkTypeCompatability(self, other):
         """A type check to make sure that operations between vectors are specified
            using the Vector class."""
@@ -200,7 +197,11 @@ class Vector:
             raise Exception("Vectors are of unequal dimension.")
         if self._origin != other._origin:
             raise Exception("Specified origins must match.")
-                    
+
+    def _undef(self):
+        """A catch-all method to be called if a mathematical operation is undefined."""
+        raise Exception("This operation is undefined on vectors.")
+            
     def add(self, other):
         """A direct method for the addition of two vectors."""
         return self.__add__(other)
@@ -259,6 +260,7 @@ class Vector:
         return Vector(newVec, origin=self.origin)
     
     def proj(self, other):
+        """Return the projection of self onto other."""
         self._checkTypeCompatability(other)
         scalar = self.dot(other) / other.norm()
         return Vector(scalar * other, origin = self.origin, axis = self.axis)
