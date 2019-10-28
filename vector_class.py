@@ -157,6 +157,10 @@ class Vector:
         self._checkTypeCompatability(other)
         return Vector([self._coordinates[i] - other._coordinates[i] for i in range(self._dim)], origin = self._origin, axis = self._axis)
 
+    @property
+    def axis(self):
+        return self._axis
+
     @property            
     def dim(self):
         return self._dim
@@ -168,10 +172,11 @@ class Vector:
     @property
     def dtype(self):
         return self._dtype
-    
+
     @property
-    def axis(self):
-        return self._axis
+    def head(self):
+        """Return as a list."""
+        return self._coordinates
     
     @property
     def origin(self):
@@ -183,10 +188,6 @@ class Vector:
         """Return as a list."""
         return self._origin
     
-    @property
-    def head(self):
-        """Return as a list."""
-        return self._coordinates
         
     def _checkTypeCompatability(self, other):
         """A type check to make sure that operations between vectors are specified
@@ -206,13 +207,43 @@ class Vector:
         """A direct method for the addition of two vectors."""
         return self.__add__(other)
     
-    def sub(self, other):
-        """A direct method for the subtraction of two vectors."""
-        return self.__sub__(other)
+    def cross(self, other):
+        """Compute the cross product of two, three-dimensional vectors."""
+        if self._dim != 3 or other._dim != 3:
+            raise Exception("The cross product is only defined for 3-dimensional vectors.")
+        self._checkTypeCompatability(other)
+        newVec = []
+        newVec.append(self[1] * other[2] - self[2] * other[1])
+        newVec.append(self[0] * other[2] - self[2] * other[0])
+        newVec.append(self[0] * other[1] - self[1] * other[0])
+        return Vector(newVec, origin=self.origin)
     
-    def smul(self, other):
-        """A direct method for scalar multiplication."""
-        return self.__mul__(other)
+    def dot(self, other):
+        """Compute the dot product of two vectors. The dot product is returned as
+           a float."""
+        self._checkTypeCompatability(other)
+        dotProduct = 0
+        for i in range(self._dim):
+            dotProduct += self._coordinates[i] * other._coordinates[i]
+        return dotProduct
+
+    def norm(self):
+        """Compute the Euclidean norm of a vector. This is the same as length
+           in a Euclidean space. The norm is returned as a float."""
+        euclideanNorm = 0.0
+        if self._origin == []:
+            tempOrigin = [0 for i in range(self._dim)]
+        else:
+            tempOrigin = self._origin
+        for i in range(self._dim):
+            euclideanNorm += (self._coordinates[i] - tempOrigin[i]) ** 2
+        return sqrt(euclideanNorm)
+    
+    def proj(self, other):
+        """Return the projection of self onto other."""
+        self._checkTypeCompatability(other)
+        scalar = self.dot(other) / other.norm()
+        return Vector(scalar * other, origin = self.origin, axis = self.axis)
     
     def shift(self, newOrigin = []):
         """Shift the vector to a new origin. The new origin must be specified
@@ -227,40 +258,11 @@ class Vector:
                 raise Exception("Shift is not the same dimension as Vector.")
             return Vector([self._coordinates[i] + newOrigin[i] for i in range(self._dim)], origin = newOrigin, axis = self._axis)
 
-    def norm(self):
-        """Compute the Euclidean norm of a vector. This is the same as length
-           in a Euclidean space. The norm is returned as a float."""
-        euclideanNorm = 0.0
-        if self._origin == []:
-            tempOrigin = [0 for i in range(self._dim)]
-        else:
-            tempOrigin = self._origin
-        for i in range(self._dim):
-            euclideanNorm += (self._coordinates[i] - tempOrigin[i]) ** 2
-        return sqrt(euclideanNorm)
+    def smul(self, other):
+        """A direct method for scalar multiplication."""
+        return self.__mul__(other)
     
-    def dot(self, other):
-        """Compute the dot product of two vectors. The dot product is returned as
-           a float."""
-        self._checkTypeCompatability(other)
-        dotProduct = 0
-        for i in range(self._dim):
-            dotProduct += self._coordinates[i] * other._coordinates[i]
-        return dotProduct
+    def sub(self, other):
+        """A direct method for the subtraction of two vectors."""
+        return self.__sub__(other)
     
-    def cross(self, other):
-        """Compute the cross product of two, three-dimensional vectors."""
-        if self._dim != 3 or other._dim != 3:
-            raise Exception("The cross product is only defined for 3-dimensional vectors.")
-        self._checkTypeCompatability(other)
-        newVec = []
-        newVec.append(self[1] * other[2] - self[2] * other[1])
-        newVec.append(self[0] * other[2] - self[2] * other[0])
-        newVec.append(self[0] * other[1] - self[1] * other[0])
-        return Vector(newVec, origin=self.origin)
-    
-    def proj(self, other):
-        """Return the projection of self onto other."""
-        self._checkTypeCompatability(other)
-        scalar = self.dot(other) / other.norm()
-        return Vector(scalar * other, origin = self.origin, axis = self.axis)
