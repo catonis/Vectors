@@ -7,6 +7,13 @@ Created on Tue Oct 22 04:46:51 2019
 A vector class for mathematical usage. This vector is defined to be useful
 in seeing the operations of vector calculus and linear algebra. Other Python
 libraries have much more efficient vector and matrix operations.
+
+TO DO:
+    . Add verbosity for operations
+    . Add functionality for a vector with complex components
+    . Add cross product for 7-dim vectors
+    . Add slicing
+    
 """
 
 from math import sqrt
@@ -26,6 +33,16 @@ class Vector:
            will be stored in _dtype. The dimension of the head list will
            be stored in _dim."""
         
+        #If a Vector is provided as an argument to the constructor,
+        #copy the attributes or the existing vector and return.
+        if type(head) == Vector:
+            self._coordinates = head._coordinates.copy()
+            self._origin = head._origin.copy()
+            self._dim = head._dim
+            self._dtype = head._dtype
+            self._axis = head._axis
+            return
+        
         #Initialize _coordinates and test whether the constructor is called
         #with a list of numeric values.
         try:
@@ -34,6 +51,7 @@ class Vector:
             raise TypeError("Expected list or similar castable object as vector. Got " + str(type(head)) + ".")
         except:
             raise Exception("Unknown error in class constructor.")
+
 
         #Check if coordinate entries are numbers.
         for i in self._coordinates:
@@ -99,21 +117,26 @@ class Vector:
         if self._origin == []:
             return '\u27e8' + str(self._coordinates)[1:-1] + '\u27e9'
         else:
-            return '\u27e8' + str(self._origin)[1:-1] + '\u27e9 \u27f6 \u27e8' + str(self._coordinates)[1:-1] + '\u27e9'
+            return str(self._origin) + ' \u27f6 \u27e8' + str(self._coordinates)[1:-1] + '\u27e9'
 
     def __str__(self):
         """Use __repr__."""
         return self.__repr__()
+    
+    #Other private methods:
     
     def __add__(self, other):
         """Vector addition."""
         self._checkTypeCompatability(other)
         return Vector([self._coordinates[i] + other._coordinates[i] for i in range(self._dim)], origin = self._origin, axis = self._axis)
         
-    def __sub__(self, other):
-        """Vector subtraction."""
-        self._checkTypeCompatability(other)
-        return Vector([self._coordinates[i] - other._coordinates[i] for i in range(self._dim)], origin = self._origin, axis = self._axis)
+    def __div__(self, other):
+        """Undefined. If division by a scalar is required, simply perform scalar
+           multiplication using the reciprocal of the scalar."""
+        self._undef()
+        
+    def __getitem__(self, index):
+        return self._coordinates[index]
 
     def __mul__(self, other):
         """Scalar multiplication."""
@@ -122,16 +145,47 @@ class Vector:
         if bool(0 == other * 0):
             return Vector([self._coordinates[i] * other for i in range(self._dim)], origin = self._origin, axis = self._axis)
         else:
-            raise Exception("Multiplication of vectors with non-scalars is ambiguous. Please use either the dot() or cross() methods.")
-            
-    def __div__(self, other):
-        """Undefined. If division by a scalar is required, simply perform scalar
-           multiplication using the reciprocal of the scalar."""
-        self._undef()
-             
+            raise Exception("Multiplication of vectors with non-scalars is ambiguous. Please use either the dot() or cross() methods.")           
+
     def __rmul__(self, other):
         """Scalar multiplication with operands in a different order."""
         return self.__mul__(other)
+                 
+    def __sub__(self, other):
+        """Vector subtraction."""
+        self._checkTypeCompatability(other)
+        return Vector([self._coordinates[i] - other._coordinates[i] for i in range(self._dim)], origin = self._origin, axis = self._axis)
+
+    @property            
+    def dim(self):
+        return self._dim
+    
+    @property
+    def dimension(self):
+        return self._dim
+    
+    @property
+    def dtype(self):
+        return self._dtype
+    
+    @property
+    def axis(self):
+        return self._axis
+    
+    @property
+    def origin(self):
+        """Return as a list."""
+        return self._origin
+    
+    @property
+    def tail(self):
+        """Return as a list."""
+        return self._origin
+    
+    @property
+    def head(self):
+        """Return as a list."""
+        return self._coordinates
         
     def _undef(self):
         """A catch-all method to be called if a mathematical operation is undefined."""
@@ -164,7 +218,7 @@ class Vector:
            as a list with the same dimension as the Vector. If the origin is
            not specified, the origin is moved to [0, 0, ...]."""
         if newOrigin == [] and self._origin == []:
-            return self
+            return Vector(self)
         elif newOrigin == [] and self._origin != []:
             return Vector([self._coordinates[i] - self._origin[i] for i in range(self._dim)], origin = [], axis = self._axis)
         else:
@@ -188,24 +242,23 @@ class Vector:
         """Compute the dot product of two vectors. The dot product is returned as
            a float."""
         self._checkTypeCompatability(other)
-        dotProduct = 0.0
+        dotProduct = 0
         for i in range(self._dim):
             dotProduct += self._coordinates[i] * other._coordinates[i]
-        
-        #Need to add code for the dot product of vectors with complex coordinates.
-        #Need to add code to check if the tails of the vectors share the same origin.
-        #Need to add code to reject one-dimensional vectors
-        
         return dotProduct
-
-            
-        
-        
-            
-            
-            
-        
-        
     
-                
-            
+    def cross(self, other):
+        """Compute the cross product of two, three-dimensional vectors."""
+        if self._dim != 3 or other._dim != 3:
+            raise Exception("The cross product is only defined for 3-dimensional vectors.")
+        self._checkTypeCompatability(other)
+        newVec = []
+        newVec.append(self[1] * other[2] - self[2] * other[1])
+        newVec.append(self[0] * other[2] - self[2] * other[0])
+        newVec.append(self[0] * other[1] - self[1] * other[0])
+        return Vector(newVec, origin=self.origin)
+    
+    def proj(self, other):
+        self._checkTypeCompatability(other)
+        scalar = self.dot(other) / other.norm()
+        return Vector(scalar * other, origin = self.origin, axis = self.axis)
