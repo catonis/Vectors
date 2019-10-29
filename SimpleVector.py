@@ -21,6 +21,11 @@ which satisfy the axioms of a vector space. This includes:
     . Scalar Multiplication
     . Zero Vector
 
+TO DO:
+    . Implement @classmethods
+    . Debug shift
+    . Implement Precision
+
 """
 
 from math import sqrt
