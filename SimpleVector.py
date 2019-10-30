@@ -22,7 +22,6 @@ which satisfy the axioms of a vector space. This includes:
     . Zero Vector
 
 TO DO:
-    . Implement @classmethods
     . Debug shift
     . Implement Precision
 
@@ -104,7 +103,7 @@ class SimpleVector:
         
         Parameters
         ----------
-        head : list, SimpleVector
+        head : list, vector
             This is either an ordered list of components or another vector
         origin : list, optional
             This is an ordered list of components of the vector tail
@@ -118,9 +117,9 @@ class SimpleVector:
             An exception for all other init errors
         """
         
-        #If a SimpleVector is provided as an argument to the constructor,
+        #If a vector is provided as an argument to the constructor,
         #copy the attributes or the existing vector and return.
-        if type(head) == SimpleVector:
+        if isinstance(head, __class__):
             self._components = head._components.copy()
             self._origin = head._origin.copy()
             self._dim = head._dim
@@ -203,7 +202,7 @@ class SimpleVector:
         Componentwise addition.
         """
         self._checkTypeCompatability(other)
-        return SimpleVector([self._components[i] + other._components[i] for i in range(self._dim)], origin = self._origin)
+        return _construct([self._components[i] + other._components[i] for i in range(self._dim)], origin = self._origin)
         
     def __getitem__(self, index):
         return self._components[index]
@@ -218,21 +217,21 @@ class SimpleVector:
         """
         Componentwise or scalar multiplication.
         """
-        if type(other) == SimpleVector:
+        if isinstance(other, __class__):
             self._checkTypeCompatability(other)
-            return SimpleVector([self._components[i] * other._components[i] for i in range(self._dim)], origin = self._origin)
+            return self._construct([self._components[i] * other._components[i] for i in range(self._dim)], origin = self._origin)
         else:
             self._checkComponentNumeric(other)
-            return SimpleVector([self._components[i] * other for i in range(self._dim)], origin = self._origin)
+            return self._construct([self._components[i] * other for i in range(self._dim)], origin = self._origin)
         
     def __neg__(self):
-        return SimpleVector([self._components[i] * -1 for i in range(self._dim)], origin = self._origin)
+        return self._construct([self._components[i] * -1 for i in range(self._dim)], origin = self._origin)
 
     def __pos__(self):
         """
         Do nothing.
         """
-        return SimpleVector(self._components, origin = self._origin)
+        return self._construct(self._components, origin = self._origin)
     
     def __pow__(self, other):
         """
@@ -247,9 +246,9 @@ class SimpleVector:
             return dotProductPower
         else:
             if other == 1:
-                return SimpleVector(self._components, origin = self._origin)
+                return self._construct(self._components, origin = self._origin)
             else:
-                return SimpleVector([dotProductPower * self._components[i] for i in range(self._dim)], origin = self._origin)
+                return self._construct([dotProductPower * self._components[i] for i in range(self._dim)], origin = self._origin)
 
     def __rmul__(self, other):
         """
@@ -262,18 +261,18 @@ class SimpleVector:
         Componentwise subtraction.
         """
         self._checkTypeCompatability(other)
-        return SimpleVector([self._components[i] - other._components[i] for i in range(self._dim)], origin = self._origin)
+        return self._construct([self._components[i] - other._components[i] for i in range(self._dim)], origin = self._origin)
     
     def __truediv__(self, other):
         """
         Componentwise or scalar division.
         """
-        if type(other) == SimpleVector:
+        if isinstance(other, __class__):
             self._checkTypeCompatability(other)
-            return SimpleVector([self._components[i] / other._components[i] for i in range(self._dim)], origin = self._origin)
+            return self._construct([self._components[i] / other._components[i] for i in range(self._dim)], origin = self._origin)
         else:
             self._checkComponentNumeric(other)
-            return SimpleVector([self._components[i] / other for i in range(self._dim)], origin = self._origin)
+            return self._construct([self._components[i] / other for i in range(self._dim)], origin = self._origin)
 
     @property            
     def dim(self):
@@ -297,9 +296,9 @@ class SimpleVector:
     @property
     def inverse(self):
         """
-        Return as a vector.
+        Return additive inverse as a vector.
         """
-        return SimpleVector(-self, origin = self._origin)
+        return self._construct(-self, origin = self._origin)
     
     @property
     def origin(self):
@@ -320,7 +319,11 @@ class SimpleVector:
         """
         Return the zero vector.
         """
-        return SimpleVector([0 for i in range(self._dim)])
+        return self._construct([0 for i in range(self._dim)])
+    
+    @classmethod
+    def _construct(cls, head, origin = []):
+        return cls(head, origin)
 
     def _checkComponentNumeric(self, testVal):
         """
@@ -339,12 +342,12 @@ class SimpleVector:
         
     def _checkTypeCompatability(self, other):
         """
-        A type check to make sure that operations between vectors are specified
-        using the SimpleVector class and that they share both dimension and
-        origin.
+        A type check to make sure that operations between vectors are
+        specified using the vector class and that they share both dimension
+        and origin.
         """
-        if type(other) != SimpleVector:
-            raise TypeError("Both arguments must be of the SimpleVector class.")
+        if not isinstance(other, __class__):
+            raise TypeError("Both arguments must be of the vector class.")
         if len(self._components) != len(other._components):
             raise Exception("Vectors are of unequal dimension.")
         if self._origin != other._origin:
@@ -382,7 +385,7 @@ class SimpleVector:
         """
         self._checkTypeCompatability(other)
         scalar = self.dot(other) / other.norm()
-        return SimpleVector(scalar * other, origin = self.origin)
+        return self._construct(scalar * other, origin = self.origin)
     
     def shift(self, newOrigin = []):
         """
@@ -391,17 +394,18 @@ class SimpleVector:
         not specified, the vector tail is shifted to [0, 0, ...].
         """
         if newOrigin == [] and self._origin == []:
-            return SimpleVector(self)
+            return self._construct(self)
         elif newOrigin == [] and self._origin != []:
-            return SimpleVector([self._components[i] - self._origin[i] for i in range(self._dim)], origin = [])
+            return self._construct([self._components[i] - self._origin[i] for i in range(self._dim)], origin = [])
         else:
             if len(newOrigin) != self._dim:
                 raise Exception("Shift is not the same dimension as Vector.")
-            return SimpleVector([self._components[i] + newOrigin[i] for i in range(self._dim)], origin = newOrigin)
+            return self._construct([self._components[i] + newOrigin[i] for i in range(self._dim)], origin = newOrigin)
     
     def unit(self):
         """
         Return the vector as a unit vector.
         """
-        return SimpleVector([self._components[i] / self.norm() for i in range(self._dim)], origin = [])
+        return self._construct([self._components[i] / self.norm() for i in range(self._dim)], origin = [])
+    
  

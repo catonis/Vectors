@@ -12,7 +12,7 @@ class Vector2D(SimpleVector):
 
     def __init__(self, head, origin = []):
         
-        if type(head) == Vector2D or type(head) == SimpleVector:
+        if isinstance(head, __class__):
             if head._dim != 2:
                 raise Exception("Vector2D can only be initialized with a two-dimensional vector.")
             else:
@@ -38,7 +38,7 @@ class Vector2D(SimpleVector):
         using the SimpleVector class or Vector2D clas and that they share both
         dimension and origin.
         """
-        if type(other) != SimpleVector and type(other) != Vector2D:
+        if not isinstance(other, __class__):
             raise TypeError("Both arguments must be of the Vector2D class.")
         if other.dim != 2:
             raise Exception("Vectors are of unequal dimension.")
