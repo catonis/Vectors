@@ -22,8 +22,7 @@ which satisfy the axioms of a vector space. This includes:
     . Zero Vector
 
 TO DO:
-    . Debug shift
-    . Implement Precision
+
 
 """
 
@@ -31,7 +30,7 @@ from math import sqrt
 
 class SimpleVector:
     """
-    A class for a simple mathematical vector.
+    A class for a simple mathematical vector. This is an immutable object.
     
     ...
     
@@ -187,7 +186,7 @@ class SimpleVector:
         if self._origin == []:
             return '\u27e8' + str(self._components)[1:-1] + '\u27e9'
         else:
-            return str(self._origin) + ' \u27f6 \u27e8' + str(self._components)[1:-1] + '\u27e9'
+            return '(' + str(self._origin)[1:-1] + ') \u27f6 \u27e8' + str(self._components)[1:-1] + '\u27e9'
 
     def __str__(self):
         """
@@ -202,7 +201,7 @@ class SimpleVector:
         Componentwise addition.
         """
         self._checkTypeCompatability(other)
-        return _construct([self._components[i] + other._components[i] for i in range(self._dim)], origin = self._origin)
+        return self._construct([self._components[i] + other._components[i] for i in range(self._dim)], origin = self._origin)
         
     def __getitem__(self, index):
         return self._components[index]
