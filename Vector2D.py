@@ -6,6 +6,7 @@ Created on Tue Oct 29 04:03:09 2019
 
 TO DO
     . Add docstrings for class and methods
+    . Broaden doctest for all functions
     
 """
 
@@ -14,16 +15,18 @@ from SimpleVector import SimpleVector
 
 class Vector2D(SimpleVector):
 
-    def __init__(self, head, origin = []):
+    def __init__(self, head, tail = []):
         
         if isinstance(head, __class__):
             if head._dim != 2:
                 raise Exception("Vector2D can only be initialized with a two-dimensional vector.")
             else:
-                self._components = head._components.copy()
-                self._origin = head._origin.copy()
+                self._head = head._head.copy()
+                self._tail = head._tail.copy()
                 self._dim = head._dim
                 self._dtype = head._dtype
+                self._origin = head._origin.copy()
+                self._component = head._component.copy()
                 return
         else:
             try:
@@ -34,20 +37,19 @@ class Vector2D(SimpleVector):
                 raise Exception("Unknown error in class constructor.")
             if len(list(head)) != 2:
                 raise Exception("Vector2D can only be initialized with a two-dimensional list.")
-        super().__init__(head, origin)
+                
+        super().__init__(head, tail)
 
     def _checkTypeCompatability(self, other):
         """
         A type check to make sure that operations between vectors are specified
         using the SimpleVector class or Vector2D clas and that they share both
-        dimension and origin.
+        dimension.
         """
         if not isinstance(other, __class__):
             raise TypeError("Both arguments must be of the Vector2D class.")
         if other.dim != 2:
             raise Exception("Vectors are of unequal dimension.")
-        if self._origin != other._origin:
-            raise Exception("Specified origins must match.")
 
     def angle(self, other, units = "rad"):
         self._checkTypeCompatability(other)
@@ -62,20 +64,20 @@ class Vector2D(SimpleVector):
         return result
     
     def asLine(self, symbolX = 'x', symbolY = 'y', symbolT = 't'):
-        if self._origin == []:
-            tmpOrigin = [0, 0]
+        if self._tail == []:
+            tempTail = [0, 0]
         else:
-            tmpOrigin = self._origin
-        return '\u27e8' + symbolX + ', ' + symbolY + '\u27e9 = (' + str(tmpOrigin)[1:-1] + ') + ' + symbolT + '\u27e8' + str(self._components)[1:-1] + '\u27e9'
+            tempTail = self._tail
+        return '\u27e8' + symbolX + ', ' + symbolY + '\u27e9 = (' + str(tempTail)[1:-1] + ') + ' + symbolT + '\u27e8' + str(self._head)[1:-1] + '\u27e9'
         
-    def asLineCartesian(self, symbolX = 'x', symbolY = 'y'):
+    def asCartesianLine(self, symbolX = 'x', symbolY = 'y'):
         m = self.y / self.x
-        if self._origin == []:
+        if self._tail == []:
             bX = 0
             bY = 0
         else:
-            bX = self._origin[0]
-            bY = self._origin[1]
+            bX = self._tail[0]
+            bY = self._tail[1]
         b = bY - m * bX
         if m.is_integer():
             m = int(m)
@@ -92,11 +94,11 @@ class Vector2D(SimpleVector):
         else:
             return symbolY + ' = ' + str(m) + symbolX + ' ' + addSym + ' ' + str(abs(b))
         
-    def asLineParametric(self, symbolT = 't'):
-        if self._origin == []:
-            tmpOrigin = [0, 0]
+    def asParametricLine(self, symbolT = 't'):
+        if self._tail == []:
+            tempTail = [0, 0]
         else:
-            tmpOrigin = self._origin
+            tempTail = self._tail
         if self.x < 0:
             addSymX = '-'
         else:
@@ -105,7 +107,7 @@ class Vector2D(SimpleVector):
             addSymY = '-'
         else:
             addSymY = '+'
-        return '\u27e8' + str(self._origin[0]) + ' ' + addSymX + ' ' + str(self.x) + symbolT + ', ' + str(self._origin[1]) + ' ' + addSymY + ' ' + str(self.y) + symbolT + '\u27e9'
+        return '\u27e8' + str(self._tail[0]) + ' ' + addSymX + ' ' + str(self.x) + symbolT + ', ' + str(self._tail[1]) + ' ' + addSymY + ' ' + str(self.y) + symbolT + '\u27e9'
 
     def toPolar(self, units = "rad"):
         """
@@ -125,45 +127,41 @@ class Vector2D(SimpleVector):
             raise Exception('Units must be "rad" or "deg" for radians or degrees.')
         else:
             units = units[:3]
-        if self._origin == []:
-            tmpX = self.x
-            tmpY = self.y
-        else:
-            tmpX = self.x - self._origin[0]
-            tmpY = self.y - self._origin[1]
-        r = sqrt(tmpX ** 2 + tmpY ** 2)
+        tempX = self._component[0]
+        tempY = self._component[1]
+        r = sqrt(tempX ** 2 + tempX ** 2)
         # Vector points along the positive x-axis
-        if tmpX > 0 and tmpY == 0:
+        if tempX > 0 and tempY == 0:
             theta = 0
         # Vector is in the first quadrant
-        elif tmpX > 0 and tmpY > 0:
-            theta = atan(tmpY / tmpX)
+        elif tempX > 0 and tempY > 0:
+            theta = atan(tempY / tempX)
         # Vector points along the positive y-axis
-        elif tmpX == 0 and tmpY > 0: 
+        elif tempX == 0 and tempY > 0: 
             theta = pi / 2
         # Vector is in the second quadrant
-        elif tmpX < 0 and tmpY > 0:
-            theta = atan(tmpY / abs(tmpX)) + (pi / 2)
+        elif tempX < 0 and tempY > 0:
+            theta = atan(tempY / abs(tempX)) + (pi / 2)
         # Vector points along the negative x-axis
-        elif tmpX < 0 and tmpY == 0:
+        elif tempX < 0 and tempY == 0:
             theta = pi
         # Vector is in the third quadrant
-        elif tmpX < 0 and tmpY < 0:
-            theta = atan(abs(tmpY) / abs(tmpX)) + pi
+        elif tempX < 0 and tempY < 0:
+            theta = atan(abs(tempY) / abs(tempX)) + pi
         # Vector points along the negative y-axis
-        elif tmpX == 0 and tmpY < 0:
+        elif tempX == 0 and tempY < 0:
             theta = (3 * pi) / 2
         # Vector is in the fourth quadrant
         else:
-            theta = atan(abs(tmpY) / tmpX) + ((3 * pi) / 2)
+            theta = atan(abs(tempY) / tempX) + ((3 * pi) / 2)
         if units == "deg":
             theta = theta * 180 / pi
         return [r, theta]
     
     @property            
     def x(self):
-        return self[0]
+        return self._head[0]
     
     @property
     def y(self):
-        return self[1]
+        return self._head[1]
