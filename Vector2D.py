@@ -4,6 +4,10 @@ Created on Tue Oct 29 04:03:09 2019
 
 @author: Chris Mitchell
 
+Vector2D is a two-dimensional cartesian vector based on the generic class
+SimpleVector. Its implementation restricts usage to two-dimensions and adds
+methods to work with such vectors.
+
 TO DO
     . Add docstrings for class and methods
     . Broaden doctest for all functions
@@ -14,6 +18,57 @@ from math import sqrt, acos, atan, pi
 from SimpleVector import SimpleVector
 
 class Vector2D(SimpleVector):
+    """
+    A class for a two-dimensional vector.
+    
+    ...
+    
+    Attributes
+    ----------
+    component : list
+        The component form of the vector, i.e.:
+            <head[0] - tail[0], head[1] - tail[1], ...>
+        If the vector has no specified tail, a copy of the list of
+        coordinates is returned.
+    dim, dimension : int
+        The length or number of components of the vector
+    dtype : type object
+        The numeric type of the components (int, float, or complex)
+    head : list
+        A list containing the head coordinates of the vector
+    inverse : vector
+        The additive inverse of the vector
+    origin : list
+        A list containing the origin
+    tail : list
+        A list containing the tail coordinates of the vector.
+    x : int, float, or complex
+        The x-coordinate of the vector head
+    y : int, float, or complex
+        The y-coordinate of the vector head
+    zero : vector
+        The zero vector
+
+    Methods
+    -------   
+    angle : vector; units, optional
+        Returns the angle between two vectors in radians or degrees
+    dot : vector
+        Returns the dot product of both vectors
+    norm :
+        Returns the Euclidean norm or length of the vector
+    proj : vector
+        Returns the vector projected onto the argument
+    shift : list, optional
+        Shift the tail of the vector to a new point. If no point is specified,
+        the vector is shifted to the origin
+    toPolar :
+        Returns the polar coordinates of the vector head as a list [r, theta]
+    unit :
+        Return the vector as a unit vector
+        
+    """
+
 
     def __init__(self, head, tail = []):
         
@@ -52,6 +107,24 @@ class Vector2D(SimpleVector):
             raise Exception("Vectors are of unequal dimension.")
 
     def angle(self, other, units = "rad"):
+        """
+        Returns the angle between self and other.
+        
+        Parameters
+        ----------
+        other : vector
+            The vector for which the angle is defined
+        units : {'rad', 'radians', 'deg', 'degrees'}
+            Specify whether to return the angle in radians or degrees
+            (defaults to radians)
+            
+        Returns
+        -------
+        float
+            The angle between self and other in radians or degrees
+            
+        """
+        
         self._checkTypeCompatability(other)
         if units not in ["rad", "radians", "deg", "degrees"]:
             raise Exception('Units must be "rad" or "deg" for radians or degrees.')
@@ -65,10 +138,9 @@ class Vector2D(SimpleVector):
     
     def asLine(self, symbolX = 'x', symbolY = 'y', symbolT = 't'):
         if self._tail == []:
-            tempTail = [0, 0]
+            return '\u27e8{0}, {1}\u27e9 = {2}\u27e8{3[0]}, {3[1]}\u27e9'.format(symbolX, symbolY, symbolT, self._head)
         else:
-            tempTail = self._tail
-        return '\u27e8' + symbolX + ', ' + symbolY + '\u27e9 = (' + str(tempTail)[1:-1] + ') + ' + symbolT + '\u27e8' + str(self._head)[1:-1] + '\u27e9'
+            return '\u27e8{0}, {1}\u27e9 = ({2[0]}, {2[1]}) + {3}\u27e8{4[0]}, {4[1]}\u27e9'.format(symbolX, symbolY, self._tail, symbolT, self._head)
         
     def asCartesianLine(self, symbolX = 'x', symbolY = 'y'):
         m = self.y / self.x
@@ -93,7 +165,7 @@ class Vector2D(SimpleVector):
             return symbolY + ' = x ' + addSym + ' ' + str(abs(b))
         else:
             return symbolY + ' = ' + str(m) + symbolX + ' ' + addSym + ' ' + str(abs(b))
-        
+
     def asParametricLine(self, symbolT = 't'):
         if self._tail == []:
             tempTail = [0, 0]
@@ -118,8 +190,18 @@ class Vector2D(SimpleVector):
         selected units. If the tail is anywhere but the origin, the origin
         will be reset to (0, 0). If the vector is the zero vector, (0, 0)
         will be returned.
+
         
-        [r, theta] will be returned as a list, not as a new vector.
+        Parameters
+        ----------
+        units : {'rad', 'radians', 'deg', 'degrees'}
+            Specify whether to return the angle in radians or degrees
+            
+        Returns
+        -------
+        list
+            [r, theta]
+            
         """
         if self[0] == 0 and self[1] == 0:
             return [0, 0]
