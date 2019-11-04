@@ -4,9 +4,10 @@ Created on Tue Oct 22 04:46:51 2019
 
 @author: Chris Mitchell
 
-A vector class for mathematical usage. This vector is defined to be useful
-in seeing the operations of vector calculus and linear algebra. Other Python
-libraries such as NumPy have much more efficient vector and matrix operations.
+SimpleVector is a generic vector class for mathematical usage. This vector is
+defined to be useful in performing vector operations in vector calculus and
+linear algebra. Other Python libraries such as NumPy have much more efficient
+vector and matrix operations.
 
 As a SimpleVector, the class will implement vector attributes and methods
 which satisfy the axioms of a vector space. This includes:
@@ -25,6 +26,9 @@ Vector operations of vectors with different tail coordinates will always
 be calculated by shifting the second vector given to the origin first.
 
 TO DO:
+    
+    . Modify doctest to be more comprehensive
+    . Implement simple graphing
 
 
 """
@@ -33,12 +37,17 @@ from math import sqrt
 
 class SimpleVector:
     """
-    A class for a simple mathematical vector. This is an immutable object.
+    A class for a generic mathematical vector. This is an immutable object.
     
     ...
     
     Attributes
     ----------
+    component : list
+        The component form of the vector, i.e.:
+            <head[0] - tail[0], head[1] - tail[1], ...>
+        If the vector has no specified tail, a copy of the list of
+        coordinates is returned.
     dim, dimension : int
         The length or number of components of the vector
     dtype : type object
@@ -55,33 +64,7 @@ class SimpleVector:
         The zero vector
 
     Methods
-    -------
-    __add__ : vector
-        Add two vectors
-    __getitem__ :
-        Allows for coordinate indexing
-    __iter__ :
-        Iterate over the vector
-    __len__ :
-        Return the dimension of a vector
-    __mul__ : scalar, vector
-        Performs componentwise multiplication between two vectors or a
-        vector and a scalar
-    __neg__ :
-        Provide a vector of the same length in the opposite direction
-    __pos__ :
-        Returns the vector
-    __pow__ : int
-        Raise vector to a given power. If the power is odd, the result is
-        a vector. If even, the result is a scalar
-    __rmul__ : scalar
-        Returns the same value as __mul__ but provides a definition if
-        the scalar is given after the vector.        
-    __sub__ : vector
-        Subtract two vectors
-    __truediv__ : scalar, vector
-        Performs componentwise division between two vectors or a vector
-        and a scalar
+    -------   
     dot : vector
         Returns the dot product of both vectors
     norm :
@@ -195,9 +178,9 @@ class SimpleVector:
         """
         
         if self._tail == []:
-            return '\u27e8' + str(self._head)[1:-1] + '\u27e9'
+            return '\u27e8{}\u27e9'.format(', '.join(['{}' for _ in self._head])).format(*self._head)
         else:
-            return '(' + str(self._tail)[1:-1] + ') \u27f6 (' + str(self._head)[1:-1] + ')'
+            return '({})\u27f6({})'.format(', '.join(['{}' for i in self._tail]),', '.join(['{}' for i in self._head])).format(*self._tail, *self._head)
 
     def __str__(self):
         """
@@ -207,27 +190,178 @@ class SimpleVector:
     
     #Other private methods:
     
+    def __abs__(self):
+        return self.norm()
+    
     def __add__(self, other):
         """
-        Vector addition.
+        Vector addition
         """
         self._checkCompatability(other)
         if self._tail == []:
             return self._construct([self._component[i] + other._component[i] for i in range(self._dim)])
         else:
             return self._construct([self._component[i] + other._component[i] + self._tail[i] for i in range(self._dim)], tail = self._tail)
+
+    def __and__(self, other):
+        return NotImplemented
+    
+    def __bool__(self):
+        if self.norm() != 0:
+            return True
+        else:
+            return False
+    
+    def __complex__(self):
+        self._dtype = complex
+        if self._tail == []:
+            return self._construct([complex(i) for i in self._head], tail = [])
+        else:
+            return self._construct([complex(i) for i in self._head], tail = [complex(i) for i in self._tail])
+        
+    def __divmod__(self, other):
+        return NotImplemented
+        
+    def __eq__(self, other):
+        """
+        Vector equality
+        """
+        self._checkCompatability(other)
+        equality = True
+        for i in range(self._dim):
+            if self._component[i] != other._component[i]:
+                equality = False
+        return equality
+
+    def __float__(self):
+        self._dtype = float
+        if self._tail == []:
+            return self._construct([float(i) for i in self._head], tail = [])
+        else:
+            return self._construct([float(i) for i in self._head], tail = [float(i) for i in self._tail])
+    
+    def __floordiv__(self, other):
+        """
+        Componentwise or scalar integer division.
+        """
+        if isinstance(other, __class__):
+            self._checkCompatability(other)
+            if self._tail == []:
+                return self._construct([self._component[i] // other._component[i] for i in range(self._dim)])
+            else:                
+                return self._construct([(self._component[i] // other._component[i]) + self._tail[i] for i in range(self._dim)], tail = self._tail)
+        else:
+            self._checkComponentNumeric(other)
+            return self._construct([self._head[i] // other for i in range(self._dim)], tail = self._tail)
         
     def __getitem__(self, index):
         """
-        An index will return a tuple (head[index], tail[index])
+        Return the proper head coordinate.
         """
-        if self._tail == []:
-            return (self._head[index], 0)
+        return self._head[index]
+    
+    def __ge__(self, other):
+        self._checkCompatability(other)
+        if self.norm() >= other.norm():
+            return True
         else:
-            return (self._head[index], self._tail[index])
+            return False
+    
+    def __gt__(self, other):
+        self._checkCompatability(other)
+        if self.norm() > other.norm():
+            return True
+        else:
+            return False
+        
+    def __iadd__(self, other):
+        return self.__add__(other)
+    
+    def __iand__(self, other):
+        return NotImplemented
+    
+    def __ifloordiv__(self, other):
+        return self.__floordiv__(other)
+    
+    def __ilshift__(self, other):
+        return NotImplemented
+    
+    def __imatmul__(self, other):
+        return self.__matmul__(other)
+    
+    def __imod__(self, other):
+        return self.__mod__(other)
+    
+    def __imul__(self, other):
+        return self.__mul__(other)
+    
+    def __int__(self):
+        self._dtype = int
+        if self._tail == []:
+            return self._construct([int(i) for i in self._head], tail = [])
+        else:
+            return self._construct([int(i) for i in self._head], tail = [int(i) for i in self._tail])
+    
+    def __invert__(self):
+        return self.__neg__()
+    
+    def __ior__(self, other):
+        return NotImplemented
+    
+    def __ipow__(self, other):
+        return self.__pow__(other)
+
+    def __irshift__(self, other):
+        return NotImplemented
+    
+    def __isub__(self, other):
+        return self.__sub__(other)
+    
+    def __itruediv__(self, other):
+        return self.__truediv__(other)
+    
+    def __ixor__(self, other):
+        return NotImplemented
+    
+    def __le__(self, other):
+        self._checkCompatability(other)
+        if self.norm() <= other.norm():
+            return True
+        else:
+            return False
     
     def __len__(self):
         return self._dim
+    
+    def __lshift__(self, other):
+        return NotImplemented
+    
+    def __lt__(self, other):
+        self._checkCompatability(other)
+        if self.norm() < other.norm():
+            return True
+        else:
+            return False
+    
+    def __matmul__(self, other):
+        """
+        Return the dot product.
+        """
+        self.dot(other)
+        
+    def __mod__(self, other):
+        """
+        Componentwise or scalar modulus.
+        """
+        if isinstance(other, __class__):
+            self._checkCompatability(other)
+            if self._tail == []:
+                return self._construct([self._component[i] % other._component[i] for i in range(self._dim)])
+            else:                
+                return self._construct([(self._component[i] % other._component[i]) + self._tail[i] for i in range(self._dim)], tail = self._tail)
+        else:
+            self._checkComponentNumeric(other)
+            return self._construct([self._head[i] % other for i in range(self._dim)], tail = self._tail)
         
     def __mul__(self, other):
         """
@@ -243,12 +377,26 @@ class SimpleVector:
             self._checkComponentNumeric(other)
             return self._construct([self._head[i] * other for i in range(self._dim)], tail = self._tail)
         
+    def __ne__(self, other):
+        """
+        Vector equality
+        """
+        self._checkCompatability(other)
+        inequality = True
+        for i in range(self._dim):
+            if self._component[i] == other._component[i]:
+                inequality = False
+        return inequality
+        
     def __neg__(self):
         return self._construct([self._head[i] * -1 for i in range(self._dim)], tail = self._tail)
+    
+    def __or__(self, other):
+        return NotImplemented
 
     def __pos__(self):
         """
-        Do nothing.
+        Do nothing but return a new vector.
         """
         return self._construct(self._head, tail = self._tail)
     
@@ -268,12 +416,75 @@ class SimpleVector:
                 return self._construct(self._head, tail = self._tail)
             else:
                 return self._construct([dotProductPower * self._head[i] for i in range(self._dim)], tail = self._tail)
+        
+    def __radd__(self, other):
+        """
+        Will never be called.
+        """
+        pass
+    
+    def __rand__(self, other):
+        return NotImplemented
+    
+    def __rdivmod__(self, other):
+        return NotImplemented
+
+    def __rfloordiv__(self, other):
+        """
+        Scalar // Vector is not a defined operation on vectors.
+        """
+        return NotImplemented
+    
+    def __rlshift__(self, other):
+        return NotImplemented
+    
+    def __rmatmul__(self, other):
+        """
+        Will never be called.
+        """
+        pass
+    
+    def __rmod__(self, other):
+        """
+        Scalar % Vector is not a defined operation on vectors.
+        """
+        return NotImplemented
 
     def __rmul__(self, other):
         """
         Scalar multiplication with scalar first.
         """
         return self.__mul__(other)
+    
+    def __ror__(self, other):
+        return NotImplemented
+    
+    def __rpow__(self, other):
+        """
+        Scalar ** Vector is not a defined operation on vectors.
+        """
+        return NotImplemented
+    
+    def __rrshift__(self, other):
+        return NotImplemented
+    
+    def __rshift__(self, other):
+        return NotImplemented
+    
+    def __rsub__(self, other):
+        """
+        Will never be called.
+        """
+        pass
+    
+    def __rtruediv__(self, other):
+        """
+        Scalar / Vector is not a defined operation on vectors.
+        """
+        return NotImplemented
+    
+    def __rxor__(self, other):
+        return NotImplemented
                  
     def __sub__(self, other):
         """
@@ -298,6 +509,9 @@ class SimpleVector:
         else:
             self._checkComponentNumeric(other)
             return self._construct([self._head[i] / other for i in range(self._dim)], tail = self._tail)
+
+    def __xor__(self, other):
+        return NotImplemented
 
     @property
     def component(self):
@@ -352,6 +566,10 @@ class SimpleVector:
     
     @classmethod
     def _construct(cls, head, tail = []):
+        """
+        A special class method which makes certain that child classes of
+        SimpleVector are returned instances of the child class.
+        """
         return cls(head, tail)
 
     def _checkComponentNumeric(self, testVal):
@@ -391,6 +609,17 @@ class SimpleVector:
     def dot(self, other):
         """
         Compute the dot product of two vectors.
+        
+        Parameters
+        ----------
+        other : vector
+            A vector-type class.
+            
+        Returns
+        -------
+        int, float, complex
+            The calculated dot product will be of type _dtype
+            
         """
         self._checkCompatability(other)
         dotProduct = 0
@@ -401,6 +630,16 @@ class SimpleVector:
     def norm(self):
         """
         Compute the Euclidean norm of a vector.
+        
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        int, float, or complex
+            The norm of the vector
+        
         """
         euclideanNorm = 0
         for i in range(self._dim):
@@ -413,6 +652,17 @@ class SimpleVector:
                         a . b 
            a.proj(b) =  ----- * b
                         b . b
+                        
+        Parameters
+        ----------
+        other : vector
+            A vector-type class
+            
+        Returns
+        -------
+        vector
+            The projection of self onto other
+            
         """
         self._checkCompatability(other)
         scalar = self.dot(other) / other.norm()
@@ -423,6 +673,17 @@ class SimpleVector:
         Shift the vector to a new point. The new tail must be specified
         as a list with the same dimension as the Vector. If the tail is
         not specified, the vector tail is shifted to [0, 0, ...].
+        
+        Parameters
+        ----------
+        newTail : list, optional
+            The new coordinates to which to shift the tail of the vector
+            
+        Returns
+        -------
+        vector
+            A vector-type class
+            
         """
         if newTail == [] and self._tail == []:
             return self._construct(self)
@@ -436,7 +697,20 @@ class SimpleVector:
     
     def unit(self):
         """
-        Return the vector as a unit vector.
+        Return the vector as a unit vector:
+                        v            
+            a.unit() = ---
+                       |v|
+                       
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        vector
+            A vector-class type
+            
         """
         if self._tail == []:
             return self._construct([self._component[i] / self.norm() for i in range(self._dim)])
