@@ -688,7 +688,7 @@ class SimpleVector:
         if newTail == [] and self._tail == []:
             return self._construct(self)
         elif newTail == [] and self._tail != []:
-            return self._construct([self.component[i] for i in range(self._dim)], tail = [])
+            return self._construct([self._component[i] for i in range(self._dim)], tail = [])
         else:
             if len(newTail) != self._dim:
                 raise Exception("Shift is not the same dimension as Vector.")

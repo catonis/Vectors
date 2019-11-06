@@ -53,6 +53,8 @@ class Vector2D(SimpleVector):
     -------   
     angle : vector; units, optional
         Returns the angle between two vectors in radians or degrees
+    cosine : vector
+        Returns the cosine of the angle between the two vectors
     dot : vector
         Returns the dot product of both vectors
     norm :
@@ -62,13 +64,12 @@ class Vector2D(SimpleVector):
     shift : list, optional
         Shift the tail of the vector to a new point. If no point is specified,
         the vector is shifted to the origin
-    toPolar :
+    toPolar : units, optional
         Returns the polar coordinates of the vector head as a list [r, theta]
     unit :
         Return the vector as a unit vector
         
     """
-
 
     def __init__(self, head, tail = []):
         
@@ -94,6 +95,14 @@ class Vector2D(SimpleVector):
                 raise Exception("Vector2D can only be initialized with a two-dimensional list.")
                 
         super().__init__(head, tail)
+        
+    @property            
+    def x(self):
+        return self._head[0]
+    
+    @property
+    def y(self):
+        return self._head[1]
 
     def _checkTypeCompatability(self, other):
         """
@@ -180,6 +189,28 @@ class Vector2D(SimpleVector):
         else:
             addSymY = '+'
         return '\u27e8' + str(self._tail[0]) + ' ' + addSymX + ' ' + str(self.x) + symbolT + ', ' + str(self._tail[1]) + ' ' + addSymY + ' ' + str(self.y) + symbolT + '\u27e9'
+    
+    def cosine(self, other):
+        """
+        Returns the cosine of the angle between two vectors:
+                         x . y
+            cosTheta = ---------
+                       |x| * |y|
+                       
+        Parameters
+        ----------
+        other : vector
+            The vector for which we need the cosine of the angle.
+            
+        Returns
+        -------
+        float
+            The cosine of the angle between the two vectors.
+        
+        """
+        
+        self._checkTypeCompatability(other)
+        return self.dot(other) / (self.norm() * other.norm())   
 
     def toPolar(self, units = "rad"):
         """
@@ -203,6 +234,7 @@ class Vector2D(SimpleVector):
             [r, theta]
             
         """
+        
         if self[0] == 0 and self[1] == 0:
             return [0, 0]
         if units not in ["rad", "radians", "deg", "degrees"]:
@@ -240,10 +272,3 @@ class Vector2D(SimpleVector):
             theta = theta * 180 / pi
         return [r, theta]
     
-    @property            
-    def x(self):
-        return self._head[0]
-    
-    @property
-    def y(self):
-        return self._head[1]
