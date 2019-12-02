@@ -38,6 +38,8 @@ class Vector3D(SimpleVector):
         A list containing the head coordinates of the vector
     inverse : vector
         The additive inverse of the vector
+    norm : float, complex
+        The Euclidean norm of the vector
     origin : list
         A list containing the origin
     tail : list
@@ -57,10 +59,11 @@ class Vector3D(SimpleVector):
         Returns the angle between two vectors in radians or degrees
     cross : vector
         Returns the cross product of both vectors as a Vector3D object
-    norm :
-        Returns the Euclidean norm or length of the vector
     proj : vector
         Returns the vector projected onto the argument
+    scale : int, float, complex
+        Returns a vector in the direction of self scaled to the given
+        magnitude.
     shift : list, optional
         Shift the tail of the vector to a new point. If no point is specified,
         the vector is shifted to the origin
@@ -89,6 +92,7 @@ class Vector3D(SimpleVector):
                 self._dtype = head._dtype
                 self._origin = head._origin.copy()
                 self._component = head._component.copy()
+                self._norm = head._norm
                 return
         else:
             try:
@@ -146,7 +150,7 @@ class Vector3D(SimpleVector):
             raise Exception('Units must be "rad" or "deg" for radians or degrees.')
         else:
             units = units[:3]
-        sineTheta = self.cross(other).norm() / (self.norm() * other.norm())
+        sineTheta = self.cross(other).norm / (self.norm * other.norm)
         result = asin(sineTheta)
         if units == "deg":
             result = result * 180 / pi
@@ -204,7 +208,7 @@ class Vector3D(SimpleVector):
         """
         
         self._checkTypeCompatability(other)
-        return self.cross(other).norm() / (self.norm() * other.norm())
+        return self.cross(other).norm / (self.norm * other.norm)
     
     def toCylindrical(self, units = "rad"):
         """

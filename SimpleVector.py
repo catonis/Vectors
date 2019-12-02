@@ -56,6 +56,8 @@ class SimpleVector:
         A list containing the head coordinates of the vector
     inverse : vector
         The additive inverse of the vector
+    norm : float, complex
+        The Euclidean norm of the vector
     origin : list
         A list containing the origin
     tail : list
@@ -67,10 +69,11 @@ class SimpleVector:
     -------   
     dot : vector
         Returns the dot product of both vectors
-    norm :
-        Returns the Euclidean norm or length of the vector
     proj : vector
         Returns the vector projected onto the argument
+    scale : int, float, complex
+        Returns a vector in the direction of self scaled to the given
+        magnitude.
     shift : list, optional
         Shift the tail of the vector to a new point. If no point is specified,
         the vector is shifted to the origin
@@ -111,6 +114,7 @@ class SimpleVector:
             self._dtype = head._dtype
             self._origin = head._origin.copy()
             self._component = head._component.copy()
+            self._norm = head._norm
             return
         
         #Initialize _components and test whether the constructor is called
@@ -168,6 +172,9 @@ class SimpleVector:
         
         #Set the component form of the vector as head - tail
         self._component = self._componentForm()
+        
+        #Set the norm
+        self._norm = self._euclideanNorm()
                 
     def __repr__(self):
         """
@@ -191,7 +198,7 @@ class SimpleVector:
     #Other private methods:
     
     def __abs__(self):
-        return self.norm()
+        return self.norm
     
     def __add__(self, other):
         """
@@ -207,7 +214,7 @@ class SimpleVector:
         return NotImplemented
     
     def __bool__(self):
-        if self.norm() != 0:
+        if self.norm != 0:
             return True
         else:
             return False
@@ -262,14 +269,14 @@ class SimpleVector:
     
     def __ge__(self, other):
         self._checkCompatability(other)
-        if self.norm() >= other.norm():
+        if self.norm >= other.norm:
             return True
         else:
             return False
     
     def __gt__(self, other):
         self._checkCompatability(other)
-        if self.norm() > other.norm():
+        if self.norm > other.norm:
             return True
         else:
             return False
@@ -325,7 +332,7 @@ class SimpleVector:
     
     def __le__(self, other):
         self._checkCompatability(other)
-        if self.norm() <= other.norm():
+        if self.norm <= other.norm:
             return True
         else:
             return False
@@ -338,7 +345,7 @@ class SimpleVector:
     
     def __lt__(self, other):
         self._checkCompatability(other)
-        if self.norm() < other.norm():
+        if self.norm < other.norm:
             return True
         else:
             return False
@@ -544,6 +551,13 @@ class SimpleVector:
         return self._construct(-self, tail = self._tail)
     
     @property
+    def norm(self):
+        """
+        Return the Euclidean norm of the vector.
+        """
+        return self._norm
+    
+    @property
     def origin(self):
         """
         Return as a list.
@@ -605,6 +619,25 @@ class SimpleVector:
             return self._head.copy()
         else:
             return [self._head[i] - self._tail[i] for i in range(self._dim)]
+        
+    def _euclideanNorm(self):
+        """
+        Compute the Euclidean norm of a vector.
+        
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        int, float, or complex
+            The norm of the vector
+        
+        """
+        euclideanNorm = 0
+        for i in range(self._dim):
+            euclideanNorm += (self._component[i]) ** 2
+        return sqrt(euclideanNorm)
     
     def dot(self, other):
         """
@@ -626,25 +659,6 @@ class SimpleVector:
         for i in range(self._dim):
             dotProduct += self._component[i] * other._component[i]
         return dotProduct
-
-    def norm(self):
-        """
-        Compute the Euclidean norm of a vector.
-        
-        Parameters
-        ----------
-        None
-        
-        Returns
-        -------
-        int, float, or complex
-            The norm of the vector
-        
-        """
-        euclideanNorm = 0
-        for i in range(self._dim):
-            euclideanNorm += (self._component[i]) ** 2
-        return sqrt(euclideanNorm)
     
     def proj(self, other):
         """
@@ -665,8 +679,25 @@ class SimpleVector:
             
         """
         self._checkCompatability(other)
-        scalar = self.dot(other) / other.norm()
+        scalar = self.dot(other) / other.norm
         return self._construct(scalar * other, tail = self.tail)
+    
+    def scale(self, magnitude):
+        """
+        Return a vector in the direction of self scaled to a given magnitude.
+        
+        Parameters
+        ----------
+        magnitude : int, float, complex
+        
+        Returns
+        -------
+        vector
+            The same vector scaled.
+            
+        """
+        unit = self.unit()
+        return magnitude * unit
     
     def shift(self, newTail = []):
         """
@@ -713,8 +744,8 @@ class SimpleVector:
             
         """
         if self._tail == []:
-            return self._construct([self._component[i] / self.norm() for i in range(self._dim)])
+            return self._construct([self._component[i] / self.norm for i in range(self._dim)])
         else:
-            return self._construct([(self._component[i] / self.norm()) + self._tail[i] for i in range(self._dim)], tail = self._tail)
+            return self._construct([(self._component[i] / self.norm) + self._tail[i] for i in range(self._dim)], tail = self._tail)
     
  

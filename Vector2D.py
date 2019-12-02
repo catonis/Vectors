@@ -38,6 +38,8 @@ class Vector2D(SimpleVector):
         A list containing the head coordinates of the vector
     inverse : vector
         The additive inverse of the vector
+    norm : float, complex
+        The Euclidean norm of the vector
     origin : list
         A list containing the origin
     tail : list
@@ -57,10 +59,11 @@ class Vector2D(SimpleVector):
         Returns the cosine of the angle between the two vectors
     dot : vector
         Returns the dot product of both vectors
-    norm :
-        Returns the Euclidean norm or length of the vector
     proj : vector
         Returns the vector projected onto the argument
+    scale : int, float, complex
+        Returns a vector in the direction of self scaled to the given
+        magnitude.
     shift : list, optional
         Shift the tail of the vector to a new point. If no point is specified,
         the vector is shifted to the origin
@@ -83,6 +86,7 @@ class Vector2D(SimpleVector):
                 self._dtype = head._dtype
                 self._origin = head._origin.copy()
                 self._component = head._component.copy()
+                self._norm = head._norm
                 return
         else:
             try:
@@ -139,7 +143,7 @@ class Vector2D(SimpleVector):
             raise Exception('Units must be "rad" or "deg" for radians or degrees.')
         else:
             units = units[:3]
-        cosineTheta = self.dot(other) / (self.norm() * other.norm())
+        cosineTheta = self.dot(other) / (self.norm * other.norm)
         result = acos(cosineTheta)
         if units == "deg":
             result = result * 180 / pi
@@ -210,7 +214,7 @@ class Vector2D(SimpleVector):
         """
         
         self._checkTypeCompatability(other)
-        return self.dot(other) / (self.norm() * other.norm())   
+        return self.dot(other) / (self.norm * other.norm)   
 
     def toPolar(self, units = "rad"):
         """
